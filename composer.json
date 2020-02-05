@@ -1,0 +1,33 @@
+{
+    "name": "antonyz89/yii2-migrate",
+    "description": "",
+    "keywords": [
+        "antonyz89",
+        "yii2",
+        "extension",
+        "widget",
+        "migrate",
+        "yii2-migrate",
+        "yii2 migrate"
+    ],
+    "type": "yii2-extension",
+    "license": "BSD-3-Clause",
+    "support": {
+        "issues": "https://github.com/antonyz89/yii2-migrate/issues",
+        "source": "https://github.com/antonyz89/yii2-migrate"
+    },
+    "authors": [
+        {
+            "name": "Antony Gabriel"
+        }
+    ],
+    "require": {
+        "yiisoft/yii2": "^2.0.5",
+        "antonyz89/yii2-seeder": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "antonyz89\\migrate\\": "src"
+        }
+    }
+}
