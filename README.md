@@ -20,6 +20,20 @@ or add
 
 to the require section of your `composer.json` file.
 
+
+USAGE
+---------
+**console/config/main.php**
+
+```
+'controllerMap' => [
+    'migrate' => [
+        'class' => 'antonyz89\migrate\MigrateController'
+    ],
+],
+```
+
+
 MIGRATE COMMANDS
 ------------
 
