@@ -75,9 +75,9 @@ class Migration extends MigrationBase
      */
     public function createTable($table, $columns, $options = null)
     {
-        $this->_table = $table;
+        $this->_table = $table = $this->addPrefix($table);
 
-        parent::createTable($table, $columns, $this->defaultTableOptions);
+        parent::createTable($table, $columns, $options !== null ? $options : $this->defaultTableOptions);
 
         foreach (array_keys($columns) as $column)
             $this->checkColumn($table, $column);
@@ -111,18 +111,21 @@ class Migration extends MigrationBase
         if ($ref_table === null)
             $ref_table = preg_replace("/_id$/", '', $column);
 
+        $ref_table = $this->addPrefix($ref_table);
+        $table = $this->addPrefix($table);
+
         $only_table = $this->extractTableName($table);
 
         $this->createIndex(
             $this->generateString('idx', $only_table, $column),
             $this->_table,
-            "$column"
+            $column
         );
         $this->addForeignKey(
             $this->generateString('fk', $only_table, $column),
             $this->_table,
             $column,
-            "{{%$ref_table}}",
+            $ref_table,
             $ref_table_id,
             $delete,
             $update
@@ -131,7 +134,7 @@ class Migration extends MigrationBase
 
     public function addColumn($table, $column, $type)
     {
-        $this->_table = $table;
+        $this->_table = $table = $this->addPrefix($table);
 
         parent::addColumn($table, $column, $type);
 
@@ -140,7 +143,7 @@ class Migration extends MigrationBase
 
     public function dropColumn($table, $column)
     {
-        $this->_table = $table;
+        $this->_table = $table = $this->addPrefix($table);
 
         $this->checkColumn($table, $column, self::ACTION_DROP);
 
@@ -193,5 +196,17 @@ class Migration extends MigrationBase
     private function isIgnoringColumn($column)
     {
         return in_array($column, $this->ignoreColumns);
+    }
+
+    /**
+     * @param string $table
+     * @return string
+     */
+    private function addPrefix($table)
+    {
+        if (!preg_match("/^{{%.+}}$/", $table))
+            return "{{%$table}}";
+
+        return $table;
     }
 }
