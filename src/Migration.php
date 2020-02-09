@@ -77,29 +77,10 @@ class Migration extends MigrationBase
     {
         $this->_table = $table;
 
-        if ($this->tableExists($table)) {
-            echo "    > table '$table' already exists\n";
-            $this->completeColumns($table, $columns);
-        } else {
-            parent::createTable($table, $columns, $this->defaultTableOptions);
+        parent::createTable($table, $columns, $this->defaultTableOptions);
 
-            foreach (array_keys($columns) as $column)
-                $this->checkColumn($table, $column);
-        }
-    }
-
-    public function completeColumns($table, $columns)
-    {
-        $schema = $this->getDb()->getTableSchema($table);
-        /* @var $column string */
-        foreach ($columns as $column => $type) {
-            if (is_int($column)) continue;
-
-            if (is_null($schema->getColumn($column))) {
-                $this->addColumn($table, $column, $type);
-                echo "        > column '$column' added\n";
-            }
-        }
+        foreach (array_keys($columns) as $column)
+            $this->checkColumn($table, $column);
     }
 
     /**
@@ -110,8 +91,8 @@ class Migration extends MigrationBase
      *
      * $options = [
      *   'table' => 'table_name'
-     *   'ref_table' => 'reference'
-     *   'ref_table_id' => 'reference_id'
+     *   'ref_table' => 'reference_table_name'
+     *   'ref_table_id' => 'reference_table_id'
      *   'delete' => 'CASCADE'
      *   'update' => 'CASCADE'
      * ]
@@ -168,7 +149,7 @@ class Migration extends MigrationBase
 
     public function tableExists($tableName)
     {
-        return in_array($tableName, Yii::$app->db->schema->tableNames);
+        return in_array($this->extractTableName($tableName), Yii::$app->db->schema->tableNames);
     }
 
     /**

@@ -24,11 +24,14 @@ class MigrateController extends \yii\console\controllers\MigrateController
         'drop_table' => '@yii/views/dropTableMigration.php',
         'add_column' => '@yii/views/addColumnMigration.php',
         'drop_column' => '@yii/views/dropColumnMigration.php',
+        'create_junction' => '@yii/views/createTableMigration.php',
     ];
 
     public $skipConfirm = false;
 
     /**
+     * Run migrate/fresh && yii seeder
+     *
      * @return int
      * @throws NotSupportedException
      */
