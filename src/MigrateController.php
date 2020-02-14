@@ -20,12 +20,17 @@ use antonyz89\seeder\SeederController;
 class MigrateController extends \yii\console\controllers\MigrateController
 {
     public $generatorTemplateFiles = [
-        'create_table' => 'vendor/antonyz89/yii2-migrate/src/views/createTableMigration.php',
-        'drop_table' => '@yii/views/dropTableMigration.php',
-        'add_column' => '@yii/views/addColumnMigration.php',
-        'drop_column' => '@yii/views/dropColumnMigration.php',
-        'create_junction' => '@yii/views/createTableMigration.php',
+        'create_table'    => 'vendor/antonyz89/yii2-migrate/src/views/createTableMigration.php',
+        'drop_table'      => 'vendor/antonyz89/yii2-migrate/src/views/dropTableMigration.php',
+        'add_column'      => 'vendor/antonyz89/yii2-migrate/src/views/addColumnMigration.php',
+        'drop_column'     => 'vendor/antonyz89/yii2-migrate/src/views/dropColumnMigration.php',
+        'create_junction' => 'vendor/antonyz89/yii2-migrate/src/views/createTableMigration.php',
     ];
+
+    /**
+     * {@inheritdoc}
+     */
+    public $templateFile = 'vendor/antonyz89/yii2-migrate/src/views/migration.php';
 
     public $skipConfirm = false;
 
