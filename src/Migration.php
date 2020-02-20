@@ -11,7 +11,7 @@ use yii\db\Migration as MigrationBase;
  *
  * @property null|string $defaultTableOptions
  * @property boolean $autoGenerateIndexAndForeignKey
- * @property boolean $autoDropIndexAndForeignKey
+ * @property boolean $autoDropForeignKey
  * @property array $ignoreColumns
  */
 class Migration extends MigrationBase
@@ -33,7 +33,7 @@ class Migration extends MigrationBase
                         $this->createIndexAndForeignKey($column);
                     break;
                 case self::ACTION_DROP:
-                    if ($this->autoDropIndexAndForeignKey && ($foreignKey = $this->getForeignKey($table, $column)))
+                    if ($this->autoDropForeignKey && ($foreignKey = $this->getForeignKey($table, $column)))
                         $this->dropForeignKey($foreignKey->name, $table);
             }
     }

@@ -70,7 +70,7 @@ When a column is added individually (`addColumn()`), an index and a foreign key 
 The procedures for disabling automatic association are the same
 
 When a column is dropped (`dropColumn()`), if a foreign key exists, it is automatically removed.
-If for some reason you don't want this to happen, just `public $autoDropIndexAndForeignKey = false;` or add the column in `$ignoreColumns` to disable it for specific columns.
+If for some reason you don't want this to happen, just `public $autoDropForeignKey = false;` or add the column in `$ignoreColumns` to disable it for specific columns.
 
 to create a index and foreign key use `indexAndForeignKey($column, $options = [])`
 
