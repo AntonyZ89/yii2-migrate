@@ -50,8 +50,8 @@ class MigrateController extends \yii\console\controllers\MigrateController
         $this->skipConfirm = true;
 
         $this->truncateDatabase();
-        $this->actionUp();
-        (new SeederController(null, null))->actionSeed();
+        if ($this->actionUp() == ExitCode::OK)
+            (new SeederController(null, null))->actionSeed();
 
         $this->skipConfirm = false;
         return ExitCode::OK;
