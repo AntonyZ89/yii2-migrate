@@ -33,8 +33,9 @@ class Migration extends MigrationBase
                         $this->createIndexAndForeignKey($column);
                     break;
                 case self::ACTION_DROP:
-                    if ($this->autoDropForeignKey && ($foreignKey = $this->getForeignKey($table, $column)))
-                        $this->dropForeignKey($foreignKey->name, $table);
+                    if ($this->autoDropForeignKey && !empty(($foreignKeys = $this->getForeignKey($table, $column))))
+                        foreach ($foreignKeys as $foreignKey)
+                            $this->dropForeignKey($foreignKey->name, $table);
             }
     }
 
@@ -167,17 +168,19 @@ class Migration extends MigrationBase
      *      'reference_table' => 'reference',
      *      'reference_table_id' => 'id',
      *  ];
-     * @return object|null
+     * @return array
      */
     private function getForeignKey($table, $column)
     {
         $foreignKeys = Yii::$app->db->schema->getTableSchema($table)->foreignKeys;
 
+        $results = [];
+
         foreach ($foreignKeys as $fkName => $foreignKey) {
             $fkTableName = array_shift($foreignKey);
             foreach ($foreignKey as $fk => $fk_table_pk) {
                 if ($fk === $column) {
-                    return (object)[
+                    $results[] = (object)[
                         'name' => $fkName,
                         'foreign_key' => $fk,
                         'reference_table' => $fkTableName,
@@ -186,7 +189,7 @@ class Migration extends MigrationBase
                 }
             }
         }
-        return null;
+        return $results;
     }
 
     /**
