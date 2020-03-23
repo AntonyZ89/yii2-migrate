@@ -26,16 +26,26 @@ class Migration extends MigrationBase
 
     private function checkColumn($table, $column, $action = self::ACTION_ADD)
     {
-        if (preg_match("/_id$/", $column) && !$this->isIgnoringColumn($column))
+        if (preg_match('/_id$/', $column) && !$this->isIgnoringColumn($column))
             switch ($action) {
                 case self::ACTION_ADD:
-                    if ($this->autoGenerateIndexAndForeignKey)
+                    if ($this->autoGenerateIndexAndForeignKey) {
                         $this->createIndexAndForeignKey($column);
+                    }
                     break;
                 case self::ACTION_DROP:
-                    if ($this->autoDropIndexAndForeignKey && !empty(($foreignKeys = $this->getForeignKey($table, $column))))
-                        foreach ($foreignKeys as $foreignKey)
-                            $this->dropForeignKey($foreignKey->name, $table);
+                    if ($this->autoDropIndexAndForeignKey) {
+                        if (count(($foreignKeys = $this->getForeignKey($table, $column)))) {
+                            foreach ($foreignKeys as $foreignKey) {
+                                $this->dropForeignKey($foreignKey['name'], $table);
+                            }
+                        }
+                        if (count(($indexes = $this->getIndexes($table, $column)))) {
+                            foreach ($indexes as $index) {
+                                $this->dropIndex($index['Key_name'], $table);
+                            }
+                        }
+                    }
             }
     }
 
@@ -57,13 +67,13 @@ class Migration extends MigrationBase
 
     public function enum($values, $notNull = false)
     {
-        $values = implode($values, "', '");
+        $values = implode("', '", $values);
         return "ENUM ('$values')" . ($notNull ? ' NOT NULL' : '');
     }
 
     private function extractTableName($tableName)
     {
-        return preg_replace("/{{%(.+)}}/", '$1', $tableName);
+        return preg_replace('/{{%(.+)}}/', '$1', $tableName);
     }
 
     private function generateString($prefix, $only_table, $column)
@@ -80,12 +90,13 @@ class Migration extends MigrationBase
 
         parent::createTable($table, $columns, $options !== null ? $options : $this->defaultTableOptions);
 
-        foreach (array_keys($columns) as $column)
+        foreach (array_keys($columns) as $column) {
             $this->checkColumn($table, $column);
+        }
     }
 
     /**
-     * @param $column
+     * @param string|array $columns
      * @param array $options
      *
      * options example:
@@ -95,42 +106,61 @@ class Migration extends MigrationBase
      *   'ref_table' => 'reference_table_name'
      *   'ref_table_id' => 'reference_table_id'
      *   'delete' => 'CASCADE'
-     *   'update' => 'CASCADE'
+     *   'update' => 'CASCADE',
+     *   'unique' => false
      * ]
      */
-    public function createIndexAndForeignKey($column, $options = [])
+    public function createIndexAndForeignKey($columns, $options = [])
     {
+        if (!is_array($columns)) {
+            $columns = [$columns];
+        }
+
         $table = $this->_table;
         $ref_table = null;
         $ref_table_id = 'id';
         $delete = 'CASCADE';
         $update = 'CASCADE';
+        $unique = false;
 
-        foreach ($options as $option => $value)
+        foreach ($options as $option => $value) {
             $$option = $value;
+        }
 
-        if ($ref_table === null)
-            $ref_table = preg_replace("/_id$/", '', $column);
+        $extract_ref = false;
 
-        $ref_table = $this->addPrefix($ref_table);
+        if ($ref_table === null) {
+            $extract_ref = true;
+        } else {
+            $ref_table = $this->addPrefix($ref_table);
+        }
+
         $table = $this->addPrefix($table);
-
         $only_table = $this->extractTableName($table);
 
-        $this->createIndex(
-            $this->generateString('idx', $only_table, $column),
-            $this->_table,
-            $column
-        );
-        $this->addForeignKey(
-            $this->generateString('fk', $only_table, $column),
-            $this->_table,
-            $column,
-            $ref_table,
-            $ref_table_id,
-            $delete,
-            $update
-        );
+        foreach ($columns as $column) {
+            if ($extract_ref) {
+                $ref_table = preg_replace('/_id$/', '', $column);
+                $ref_table = $this->addPrefix($ref_table);
+            }
+
+            $this->createIndex(
+                $this->generateString('idx', $only_table, $column),
+                $table,
+                $column,
+                $unique
+            );
+
+            $this->addForeignKey(
+                $this->generateString('fk', $only_table, $column),
+                $table,
+                $column,
+                $ref_table,
+                $ref_table_id,
+                $delete,
+                $update
+            );
+        }
     }
 
     public function addColumn($table, $column, $type)
@@ -153,7 +183,7 @@ class Migration extends MigrationBase
 
     public function tableExists($tableName)
     {
-        return in_array($this->extractTableName($tableName), Yii::$app->db->schema->tableNames);
+        return in_array($this->extractTableName($tableName), Yii::$app->db->schema->tableNames, true);
     }
 
     /**
@@ -180,7 +210,7 @@ class Migration extends MigrationBase
             $fkTableName = array_shift($foreignKey);
             foreach ($foreignKey as $fk => $fk_table_pk) {
                 if ($fk === $column) {
-                    $results[] = (object)[
+                    $results[] = [
                         'name' => $fkName,
                         'foreign_key' => $fk,
                         'reference_table' => $fkTableName,
@@ -192,13 +222,35 @@ class Migration extends MigrationBase
         return $results;
     }
 
+    private function getIndexes($table, $column = null)
+    {
+        $indexes = [];
+        $result = [];
+
+        if ($this->db->driverName === 'mysql') {
+            $indexes = Yii::$app->db->createCommand("SHOW INDEX FROM $table")->queryAll();
+        }
+
+        if ($column !== null) {
+            foreach ($indexes as $index) {
+                if ($index['Column_name'] === $column) {
+                    $result[] = $index;
+                }
+            }
+
+            return $result;
+        }
+
+        return $indexes;
+    }
+
     /**
      * @param $column
      * @return bool
      */
     private function isIgnoringColumn($column)
     {
-        return in_array($column, $this->ignoreColumns);
+        return in_array($column, $this->ignoreColumns, true);
     }
 
     /**
@@ -207,8 +259,9 @@ class Migration extends MigrationBase
      */
     private function addPrefix($table)
     {
-        if (!preg_match("/^{{%.+}}$/", $table))
+        if (!preg_match('/^{{%.+}}$/', $table)) {
             return "{{%$table}}";
+        }
 
         return $table;
     }
