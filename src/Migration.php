@@ -96,7 +96,7 @@ class Migration extends MigrationBase
     }
 
     /**
-     * @param string|array $columns
+     * @param $column
      * @param array $options
      *
      * options example:
@@ -106,61 +106,44 @@ class Migration extends MigrationBase
      *   'ref_table' => 'reference_table_name'
      *   'ref_table_id' => 'reference_table_id'
      *   'delete' => 'CASCADE'
-     *   'update' => 'CASCADE',
-     *   'unique' => false
+     *   'update' => 'CASCADE'
      * ]
      */
-    public function createIndexAndForeignKey($columns, $options = [])
+    public function createIndexAndForeignKey($column, $options = [])
     {
-        if (!is_array($columns)) {
-            $columns = [$columns];
-        }
-
         $table = $this->_table;
         $ref_table = null;
         $ref_table_id = 'id';
         $delete = 'CASCADE';
         $update = 'CASCADE';
-        $unique = false;
 
         foreach ($options as $option => $value) {
             $$option = $value;
         }
 
-        $extract_ref = false;
-
         if ($ref_table === null) {
-            $extract_ref = true;
-        } else {
-            $ref_table = $this->addPrefix($ref_table);
+            $ref_table = preg_replace("/_id$/", '', $column);
         }
 
+        $ref_table = $this->addPrefix($ref_table);
         $table = $this->addPrefix($table);
+
         $only_table = $this->extractTableName($table);
 
-        foreach ($columns as $column) {
-            if ($extract_ref) {
-                $ref_table = preg_replace('/_id$/', '', $column);
-                $ref_table = $this->addPrefix($ref_table);
-            }
-
-            $this->createIndex(
-                $this->generateString('idx', $only_table, $column),
-                $table,
-                $column,
-                $unique
-            );
-
-            $this->addForeignKey(
-                $this->generateString('fk', $only_table, $column),
-                $table,
-                $column,
-                $ref_table,
-                $ref_table_id,
-                $delete,
-                $update
-            );
-        }
+        $this->createIndex(
+            $this->generateString('idx', $only_table, $column),
+            $this->_table,
+            $column
+        );
+        $this->addForeignKey(
+            $this->generateString('fk', $only_table, $column),
+            $this->_table,
+            $column,
+            $ref_table,
+            $ref_table_id,
+            $delete,
+            $update
+        );
     }
 
     public function addColumn($table, $column, $type)
