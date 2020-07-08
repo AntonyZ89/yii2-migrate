@@ -102,11 +102,12 @@ class Migration extends MigrationBase
      * options example:
      *
      * $options = [
-     *   'table' => 'table_name'
-     *   'ref_table' => 'reference_table_name'
-     *   'ref_table_id' => 'reference_table_id'
-     *   'delete' => 'CASCADE'
-     *   'update' => 'CASCADE'
+     *   'table' => 'table_name',
+     *   'ref_table' => 'reference_table_name',
+     *   'ref_table_id' => 'reference_table_id',
+     *   'delete' => 'CASCADE',
+     *   'update' => 'CASCADE',
+     *   'unique' => false
      * ]
      */
     public function createIndexAndForeignKey($column, $options = [])
@@ -116,6 +117,7 @@ class Migration extends MigrationBase
         $ref_table_id = 'id';
         $delete = 'CASCADE';
         $update = 'CASCADE';
+        $unique = false;
 
         foreach ($options as $option => $value) {
             $$option = $value;
@@ -133,7 +135,8 @@ class Migration extends MigrationBase
         $this->createIndex(
             $this->generateString('idx', $only_table, $column),
             $this->_table,
-            $column
+            $column,
+            $unique
         );
         $this->addForeignKey(
             $this->generateString('fk', $only_table, $column),
