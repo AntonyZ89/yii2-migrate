@@ -13,6 +13,8 @@ use yii\db\Migration as MigrationBase;
  * @property boolean $autoGenerateIndexAndForeignKey
  * @property boolean $autoDropIndexAndForeignKey
  * @property array $ignoreColumns
+ *
+ * @property-read $table
  */
 class Migration extends MigrationBase
 {
@@ -250,5 +252,13 @@ class Migration extends MigrationBase
         }
 
         return $table;
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getTable()
+    {
+        return $this->_table;
     }
 }
