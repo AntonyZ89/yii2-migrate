@@ -78,9 +78,11 @@ class Migration extends MigrationBase
         return preg_replace('/{{%(.+)}}/', '$1', $tableName);
     }
 
-    private function generateString($prefix, $only_table, $column)
+    private function generateString($prefix, $table, $column)
     {
-        return "$prefix-$only_table-$column";
+        $table = $this->extractTableName($table);
+
+        return "$prefix-$table-$column";
     }
 
     /**
@@ -90,7 +92,7 @@ class Migration extends MigrationBase
     {
         $this->_table = $table = $this->addPrefix($table);
 
-        parent::createTable($table, $columns, $options !== null ? $options : $this->defaultTableOptions);
+        parent::createTable($table, $columns, $options ?? $this->defaultTableOptions);
 
         foreach (array_keys($columns) as $column) {
             $this->checkColumn($table, $column);
@@ -125,30 +127,35 @@ class Migration extends MigrationBase
             $$option = $value;
         }
 
-        if ($ref_table === null) {
-            $ref_table = preg_replace("/_id$/", '', $column);
-        }
+        $ref_table && ($ref_table = $this->addPrefix($ref_table));
 
-        $ref_table = $this->addPrefix($ref_table);
         $table = $this->addPrefix($table);
 
-        $only_table = $this->extractTableName($table);
+        foreach ((array)$column as $col) {
+            $_ref_table = $ref_table;
 
-        $this->createIndex(
-            $this->generateString('idx', $only_table, $column),
-            $this->_table,
-            $column,
-            $unique
-        );
-        $this->addForeignKey(
-            $this->generateString('fk', $only_table, $column),
-            $this->_table,
-            $column,
-            $ref_table,
-            $ref_table_id,
-            $delete,
-            $update
-        );
+            if ($_ref_table === null) {
+                $_ref_table = preg_replace("/_id$/", '', $col);
+                $_ref_table = $this->addPrefix($_ref_table);
+            }
+
+            $this->createIndex(
+                $this->generateString('idx', $table, $col),
+                $table,
+                $col,
+                $unique
+            );
+
+            $this->addForeignKey(
+                $this->generateString('fk', $table, $col),
+                $table,
+                $col,
+                $_ref_table,
+                $ref_table_id,
+                $delete,
+                $update
+            );
+        }
     }
 
     public function addColumn($table, $column, $type)
