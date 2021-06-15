@@ -4,6 +4,7 @@ namespace antonyz89\migrate;
 
 use Yii;
 use yii\db\Migration as MigrationBase;
+use yii\helpers\ArrayHelper;
 
 /**
  * Class Migration
@@ -97,6 +98,33 @@ class Migration extends MigrationBase
         foreach (array_keys($columns) as $column) {
             $this->checkColumn($table, $column);
         }
+    }
+
+    /**
+     * Creates a junction table
+     * @param string $first_table
+     * @param string $second_table
+     * @param array $columns
+     * @param string|null $options
+     *@see createTable
+     *
+     */
+    public function createJunction(string $first_table, string $second_table, array $columns = [], $options = null)
+    {
+        $table = "{{%{$first_table}_{$second_table}}}";
+
+        $_columns = ArrayHelper::merge([
+            "{$first_table}_id" => $this->integer(),
+            "{$second_table}_id" => $this->integer(),
+
+            "PRIMARY KEY({$first_table}_id, {$second_table}_id)",
+        ], $columns);
+
+        if (!isset($_columns['created_at'])) {
+            $_columns['created_at'] = $this->integer()->notNull();
+        }
+
+        $this->createTable($table, $_columns, $options ?? $this->defaultTableOptions);
     }
 
     /**
