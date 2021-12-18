@@ -186,6 +186,31 @@ class Migration extends MigrationBase
         }
     }
 
+    /**
+     * @param string|string[] $column 
+     * @param string $table 
+     * @return void 
+     * @throws InvalidConfigException 
+     * @throws NotSupportedException 
+     * @throws Exception 
+     */
+    public function dropIndexAndForeignKey($column, $table)
+    {
+        $table = $this->addPrefix($table);
+
+        foreach ((array)$column as $col) {
+            $this->dropForeignKey(
+                $this->generateString('fk', $table, $col),
+                $table
+            );
+
+            $this->dropIndex(
+                $this->generateString('idx', $table, $col),
+                $table
+            );
+        }
+    }
+
     public function addColumn($table, $column, $type)
     {
         $this->_table = $table = $this->addPrefix($table);

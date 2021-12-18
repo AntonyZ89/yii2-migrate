@@ -8,7 +8,8 @@
         "widget",
         "migrate",
         "yii2-migrate",
-        "yii2 migrate"
+        "yii2 migrate",
+        "migration"
     ],
     "type": "yii2-extension",
     "license": "BSD-3-Clause",
@@ -16,14 +17,12 @@
         "issues": "https://github.com/antonyz89/yii2-migrate/issues",
         "source": "https://github.com/antonyz89/yii2-migrate"
     },
-    "authors": [
-        {
-            "name": "Antony Gabriel"
-        }
-    ],
+    "authors": [{
+        "name": "Antony Gabriel"
+    }],
     "require": {
         "php": ">=7.2",
-        "yiisoft/yii2": "^2.0.5",
+        "yiisoft/yii2": "^2",
         "antonyz89/yii2-seeder": "*"
     },
     "autoload": {
