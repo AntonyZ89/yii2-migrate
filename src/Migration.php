@@ -24,6 +24,9 @@ class Migration extends MigrationBase
     public $autoDropIndexAndForeignKey = true;
     public $ignoreColumns = [];
 
+    public static $onDelete = 'CASCADE';
+    public static $onUpdate = 'CASCADE';
+
     private const ACTION_ADD = 1;
     private const ACTION_DROP = 2;
 
@@ -137,8 +140,8 @@ class Migration extends MigrationBase
      *   'table' => 'table_name',
      *   'ref_table' => 'reference_table_name',
      *   'ref_table_id' => 'reference_table_id',
-     *   'delete' => 'CASCADE',
-     *   'update' => 'CASCADE',
+     *   'delete' => 'CASCADE', `default: [[self::$onDelete]]`
+     *   'update' => 'CASCADE', `default: [[self::$onUpdate]]`
      *   'unique' => false
      * ]
      */
@@ -147,8 +150,8 @@ class Migration extends MigrationBase
         $table = $this->_table;
         $ref_table = null;
         $ref_table_id = 'id';
-        $delete = 'CASCADE';
-        $update = 'CASCADE';
+        $delete = self::$onDelete;
+        $update = self::$onUpdate;
         $unique = false;
 
         foreach ($options as $option => $value) {
@@ -187,12 +190,12 @@ class Migration extends MigrationBase
     }
 
     /**
-     * @param string|string[] $column 
-     * @param string $table 
-     * @return void 
-     * @throws InvalidConfigException 
-     * @throws NotSupportedException 
-     * @throws Exception 
+     * @param string|string[] $column
+     * @param string $table
+     * @return void
+     * @throws InvalidConfigException
+     * @throws NotSupportedException
+     * @throws Exception
      */
     public function dropIndexAndForeignKey($column, $table)
     {

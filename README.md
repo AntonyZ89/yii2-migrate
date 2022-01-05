@@ -45,7 +45,7 @@ MIGRATE COMMANDS
 
 `yii migrate/fresh`
 
-`yii migrate/full` ( Fresh + Seeder )
+`yii migrate/full` ( Fresh + Seeder ) ( requires [antonyz89/yii2-seeder](https://github.com/AntonyZ89/yii2-seeder) )
   
 MIGRATION
 -------------
@@ -91,4 +91,13 @@ $options = [
 
 // in migrate
 $this->indexAndForeignKey('company_id', $options);
+```
+
+To set global default value of `ON UPDATE` and `ON DELETE`, replace `Migration::$onDelete` and ` Migration::$onUpdate` in `bootstrap.php`
+
+```php
+use antonyz89\migrate\Migration;
+
+Migration::$onDelete = 'RESTRICT'; // default: CASCADE
+Migration::$onUpdate = 'CASCADE'; // default: CASCADE
 ```

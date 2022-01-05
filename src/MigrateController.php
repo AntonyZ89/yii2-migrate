@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @link http://www.yiiframework.com/
  * @copyright Copyright (c) 2008 Yii Software LLC
@@ -42,6 +43,17 @@ class MigrateController extends \yii\console\controllers\MigrateController
      */
     public function actionFull()
     {
+        if (class_exists("antonyz89\\seeder\\SeederController")) {
+            $message = "You must install 'antonyz89/yii2-seeder' extension for `migrate/full` support. " .
+                "To resolve, you must add 'antonyz89/yii2-seeder' to the 'require' section of your application's" .
+                " composer.json file and then run 'composer update'.\n\n" .
+                "NOTE: This dependency change has been done since v2.0 of 'yii2-krajee-base' because only one of " .
+                "'yiisoft/yii2-bootstrap' OR 'yiisoft/yii2-bootstrap4' OR 'yiisoft/yii2-bootstrap5' extensions can " .
+                "be installed. The developer can thus choose and control which bootstrap extension library to install.";
+            $this->stdout($message);
+            return ExitCode::UNAVAILABLE;
+        }
+
         if (YII_ENV_PROD) {
             $this->stdout("YII_ENV is set to 'prod'.\nRefreshing migrations is not possible on production systems.\n");
             return ExitCode::OK;
@@ -50,8 +62,10 @@ class MigrateController extends \yii\console\controllers\MigrateController
         $this->skipConfirm = true;
 
         $this->truncateDatabase();
-        if ($this->actionUp() == ExitCode::OK)
+
+        if ($this->actionUp() == ExitCode::OK) {
             (new SeederController(null, null))->actionSeed();
+        }
 
         $this->skipConfirm = false;
         return ExitCode::OK;
@@ -64,5 +78,4 @@ class MigrateController extends \yii\console\controllers\MigrateController
 
         return parent::confirm($message, $default);
     }
-
 }
