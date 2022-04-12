@@ -234,7 +234,7 @@ class Migration extends MigrationBase
 
     public function tableExists($tableName)
     {
-        return in_array($this->extractTableName($tableName), Yii::$app->db->schema->tableNames, true);
+        return in_array($this->extractTableName($tableName), $this->db->schema->tableNames, true);
     }
 
     /**
@@ -253,7 +253,7 @@ class Migration extends MigrationBase
      */
     private function getForeignKey($table, $column)
     {
-        $foreignKeys = Yii::$app->db->schema->getTableSchema($table)->foreignKeys;
+        $foreignKeys = $this->db->schema->getTableSchema($table)->foreignKeys;
 
         $results = [];
 
@@ -279,7 +279,7 @@ class Migration extends MigrationBase
         $result = [];
 
         if ($this->db->driverName === 'mysql') {
-            $indexes = Yii::$app->db->createCommand("SHOW INDEX FROM $table")->queryAll();
+            $indexes = $this->db->createCommand("SHOW INDEX FROM $table")->queryAll();
         }
 
         if ($column !== null) {
