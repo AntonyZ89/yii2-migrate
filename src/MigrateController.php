@@ -68,6 +68,44 @@ class MigrateController extends \yii\console\controllers\MigrateController
         return ExitCode::OK;
     }
 
+    public function actionTruncateDatabase()
+    {
+        if (YII_ENV_PROD) {
+            $this->stdout("YII_ENV is set to 'prod'.\rTruncate database is not possible on production systems.\n");
+            return ExitCode::OK;
+        }
+
+        $confirm = $this->confirm("Are you sure you want to truncate database?\nAll data will be lost.");
+
+        if ($confirm) {
+            $this->stdout("\nTruncating database...\n");
+            $this->truncateDatabase();
+            $this->stdout("Database truncated.\n");
+        } else {
+            $this->stdout("\nTruncate database aborted.\n");
+        }
+    }
+
+    public function actionTruncate($table = null)
+    {
+        if (YII_ENV_PROD) {
+            $this->stdout("YII_ENV is set to 'prod'.\rTruncate table is not possible on production systems.\n");
+            return ExitCode::OK;
+        }
+
+        if ($table === null) {
+            $confirm = $this->confirm("Are you sure you want to truncate all tables?");
+        } else {
+            $confirm = $this->confirm("Are you sure you want to truncate table '{$table}'?");
+        }
+
+        if (!$confirm) {
+            return ExitCode::OK;
+        }
+
+        $this->db->createCommand()->truncateTable($table)->execute();
+    }
+
     public function confirm($message, $default = false)
     {
         if ($this->skipConfirm)
