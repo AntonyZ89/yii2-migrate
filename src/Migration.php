@@ -19,7 +19,7 @@ use yii\helpers\ArrayHelper;
  */
 class Migration extends MigrationBase
 {
-    private $_table = null;
+    protected $_table = null;
     public $autoGenerateIndexAndForeignKey = true;
     public $autoDropIndexAndForeignKey = true;
     public $ignoreColumns = [];
@@ -27,32 +27,35 @@ class Migration extends MigrationBase
     public static $onDelete = 'CASCADE';
     public static $onUpdate = 'CASCADE';
 
-    private const ACTION_ADD = 1;
-    private const ACTION_DROP = 2;
+    protected const ACTION_ADD = 1;
+    protected const ACTION_DROP = 2;
 
-    private function checkColumn($table, $column, $action = self::ACTION_ADD)
+    protected function checkColumn($table, $column, $action = self::ACTION_ADD)
     {
-        if (preg_match('/_id$/', $column) && !$this->isIgnoringColumn($column))
-            switch ($action) {
-                case self::ACTION_ADD:
-                    if ($this->autoGenerateIndexAndForeignKey) {
-                        $this->createIndexAndForeignKey($column);
+        switch ($action) {
+            case self::ACTION_ADD:
+                if (
+                    $this->autoGenerateIndexAndForeignKey &&
+                    !$this->isIgnoringColumn($column) &&
+                    preg_match('/_id$/', $column)
+                ) {
+                    $this->createIndexAndForeignKey($column);
+                }
+                break;
+            case self::ACTION_DROP:
+                if ($this->autoDropIndexAndForeignKey) {
+                    $foreignKeys = $this->getForeignKey($table, $column);
+                    $indexes = $this->getIndexes($table, $column);
+
+                    foreach ($foreignKeys as $foreignKey) {
+                        $this->dropForeignKey($foreignKey['name'], $table);
                     }
-                    break;
-                case self::ACTION_DROP:
-                    if ($this->autoDropIndexAndForeignKey) {
-                        if (count(($foreignKeys = $this->getForeignKey($table, $column)))) {
-                            foreach ($foreignKeys as $foreignKey) {
-                                $this->dropForeignKey($foreignKey['name'], $table);
-                            }
-                        }
-                        if (count(($indexes = $this->getIndexes($table, $column)))) {
-                            foreach ($indexes as $index) {
-                                $this->dropIndex($index['Key_name'], $table);
-                            }
-                        }
+
+                    foreach ($indexes as $index) {
+                        $this->dropIndex($index['Key_name'], $table);
                     }
-            }
+                }
+        }
     }
 
     public function getDefaultTableOptions()
@@ -77,12 +80,12 @@ class Migration extends MigrationBase
         return "ENUM ('$values')" . ($notNull ? ' NOT NULL' : '');
     }
 
-    private function extractTableName($tableName)
+    protected function extractTableName($tableName)
     {
         return preg_replace('/{{%(.+)}}/', '$1', $tableName);
     }
 
-    private function generateString($prefix, $table, $column)
+    protected function generateString($prefix, $table, $column)
     {
         $table = $this->extractTableName($table);
 
@@ -251,7 +254,7 @@ class Migration extends MigrationBase
      *  ];
      * @return array
      */
-    private function getForeignKey($table, $column)
+    protected function getForeignKey($table, $column)
     {
         $foreignKeys = $this->db->schema->getTableSchema($table)->foreignKeys;
 
@@ -273,7 +276,7 @@ class Migration extends MigrationBase
         return $results;
     }
 
-    private function getIndexes($table, $column = null)
+    protected function getIndexes($table, $column = null)
     {
         $indexes = [];
         $result = [];
@@ -299,7 +302,7 @@ class Migration extends MigrationBase
      * @param $column
      * @return bool
      */
-    private function isIgnoringColumn($column)
+    protected function isIgnoringColumn($column)
     {
         return in_array($column, $this->ignoreColumns, true);
     }
@@ -308,7 +311,7 @@ class Migration extends MigrationBase
      * @param string $table
      * @return string
      */
-    private function addPrefix($table)
+    protected function addPrefix($table)
     {
         if (!preg_match('/^{{%.+}}$/', $table)) {
             return "{{%$table}}";
