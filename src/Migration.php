@@ -44,16 +44,7 @@ class Migration extends MigrationBase
                 break;
             case self::ACTION_DROP:
                 if ($this->autoDropIndexAndForeignKey) {
-                    $foreignKeys = $this->getForeignKey($table, $column);
-                    $indexes = $this->getIndexes($table, $column);
-
-                    foreach ($foreignKeys as $foreignKey) {
-                        $this->dropForeignKey($foreignKey['name'], $table);
-                    }
-
-                    foreach ($indexes as $index) {
-                        $this->dropIndex($index['Key_name'], $table);
-                    }
+                    $this->dropIndexAndForeignKey($column, $table);
                 }
         }
     }
@@ -204,16 +195,17 @@ class Migration extends MigrationBase
     {
         $table = $this->addPrefix($table);
 
-        foreach ((array)$column as $col) {
-            $this->dropForeignKey(
-                $this->generateString('fk', $table, $col),
-                $table
-            );
+        foreach ((array) $column as $col) {
+            $foreignKeys = $this->getForeignKey($table, $col);
+            $indexes = $this->getIndexes($table, $col);
 
-            $this->dropIndex(
-                $this->generateString('idx', $table, $col),
-                $table
-            );
+            foreach ($foreignKeys as $foreignKey) {
+                $this->dropForeignKey($foreignKey['name'], $table);
+            }
+
+            foreach ($indexes as $index) {
+                $this->dropIndex($index['Key_name'], $table);
+            }
         }
     }
 
